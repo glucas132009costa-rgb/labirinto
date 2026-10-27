@@ -262,6 +262,7 @@ biscoitos=[
 gingerbread = Entity(
     model=random.choice(biscoitos),
     scale = 8,
+    model='box',
     position=(TAM_CELULA * 12, 1, TAM_CELULA * 12),
     rotation=(0, 180, 0)
 )
@@ -595,9 +596,13 @@ def teletransportar_carp():
 
     alvo_carp = None
 
-def teletransportar_gingerbread():
+
     posicoes = []
     dist_atual = 1
+
+def teletransportar_gingerbread():
+    posicoes = []
+    dist_atual = 20
 
     while not posicoes and dist_atual > 5:
         for z in range(1, N - 1):
@@ -607,10 +612,15 @@ def teletransportar_gingerbread():
 
                 px = x * TAM_CELULA
                 pz = z * TAM_CELULA
-                distancia = ((px - player.x) ** 2 + (pz - player.z) ** 2) ** 0.5
+
+                distancia = (
+                    (px - player.x) ** 2 +
+                    (pz - player.z) ** 2
+                ) ** 0.5
 
                 if distancia >= dist_atual:
                     posicoes.append((px, pz))
+
         if not posicoes:
             dist_atual -= 3
 
@@ -618,7 +628,12 @@ def teletransportar_gingerbread():
         px, pz = random.choice(posicoes)
         gingerbread.position = (px, 1, pz)
     else:
-        gingerbread.position = (TAM_CELULA * 3, 1, TAM_CELULA * 3)
+        gingerbread.position = (
+            TAM_CELULA * 3,
+            1,
+            TAM_CELULA * 3
+        )
+
 
 def teletransportar_minotaurus():
     posicoes = []
@@ -951,12 +966,9 @@ def update():
         return
 
     empurrar_para_fora_das_paredes()
-    empurrar_para_fora_das_paredes()
     atualizar_minimapa()
 
-    # ========================================================
     # BATERIA DA LANTERNA
-    # ========================================================
     if lanterna_ligada:
         bateria_lanterna -= time.dt
 
@@ -1019,6 +1031,7 @@ def update():
         teletransportar_minotaurus()
 
     atualizar_gingerbread()
+    empurrar_jogador_para_fora_do_gingerbread()
 
     # ========================================================
     # COLETA DAS CAVEIRAS
