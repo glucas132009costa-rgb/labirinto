@@ -147,6 +147,19 @@ lista_caveiras = []
 morto = False
 venceu = False
 
+# ATIVAÇÃO DOS MODELOS POR DISTÂNCIA
+DISTANCIA_ATIVAR_MODELOS = 35
+DISTANCIA_DESATIVAR_MODELOS = 45
+INTERVALO_ATUALIZACAO_MODELOS = 0.25
+tempo_atualizacao_modelos = 0
+estado_modelos_monstros = {
+    'tumulus': True,
+    'carp': True,
+    'minotaurus': True,
+    'chocolate': True,
+    'gingerbread': True
+}
+
 # GERACAO DO LABIRINTO
 grade = [[1] * N for _ in range(N)]
 
@@ -262,7 +275,6 @@ biscoitos=[
 gingerbread = Entity(
     model=random.choice(biscoitos),
     scale = 8,
-    model='box',
     position=(TAM_CELULA * 12, 1, TAM_CELULA * 12),
     rotation=(0, 180, 0)
 )
@@ -293,6 +305,43 @@ player = FirstPersonController(
     gravity=1
 )
 player.traverse_target = chao
+
+def distancia_entre_jogador_e(entidade):
+    dx = entidade.x - player.x
+    dz = entidade.z - player.z
+    return (dx * dx + dz * dz) ** 0.5
+
+
+def atualizar_ativacao_monstro(nome, entidade):
+    if entidade is None:
+        return False
+
+    ativo = estado_modelos_monstros[nome]
+    distancia = distancia_entre_jogador_e(entidade)
+
+    if not ativo and distancia <= DISTANCIA_ATIVAR_MODELOS:
+        entidade.enabled = True
+        estado_modelos_monstros[nome] = True
+        return True
+
+    elif ativo and distancia >= DISTANCIA_DESATIVAR_MODELOS:
+        entidade.enabled = False
+        estado_modelos_monstros[nome] = False
+        return False
+    return ativo
+
+
+def atualizar_ativacao_todos_monstros():
+    global tempo_atualizacao_modelos
+    tempo_atualizacao_modelos -= time.dt
+    if tempo_atualizacao_modelos > 0:
+        return
+    tempo_atualizacao_modelos = INTERVALO_ATUALIZACAO_MODELOS
+    atualizar_ativacao_monstro('tumulus', tumulus)
+    atualizar_ativacao_monstro('carp', carp)
+    atualizar_ativacao_monstro('minotaurus', minotaurus)
+    atualizar_ativacao_monstro('chocolate', chocolate)
+    atualizar_ativacao_monstro('gingerbread', gingerbread)
 
 # SONS
 som_tumulus = Audio(
@@ -634,7 +683,6 @@ def teletransportar_gingerbread():
             TAM_CELULA * 3
         )
 
-
 def teletransportar_minotaurus():
     posicoes = []
     dist_atual = 15
@@ -967,6 +1015,7 @@ def update():
 
     empurrar_para_fora_das_paredes()
     atualizar_minimapa()
+    atualizar_ativacao_todos_monstros()
 
     # BATERIA DA LANTERNA
     if lanterna_ligada:
@@ -1013,10 +1062,19 @@ def update():
         'lanterna_on',
         1.0 if lanterna_ligada else 0.0
     )
-    for monstro in (tumulus, carp, minotaurus, chocolate, gingerbread):
-        aplicar_luz_lanterna(monstro)
-    for caveira in lista_caveiras:
-        aplicar_luz_lanterna(caveira, altura=0)
+    for nome, monstro in (
+        ('tumulus', tumulus),
+        ('carp', carp),
+        ('minotaurus', minotaurus),
+        ('chocolate', chocolate),
+        ('gingerbread', gingerbread)
+    ):
+        if estado_modelos_monstros[nome]:
+            aplicar_luz_lanterna(monstro)
+
+        for caveira in lista_caveiras:
+            if distancia_entre_jogador_e(caveira) <= DISTANCIA_ATIVAR_MODELOS:
+                aplicar_luz_lanterna(caveira, altura=0)
 
     # ========================================================
     # TELETRANSPORTE PERIÓDICO DO MINOTAURUS
