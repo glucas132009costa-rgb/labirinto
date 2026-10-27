@@ -1,3 +1,4 @@
+
 from ursina import *
 from screeninfo import get_monitors
 from PIL import Image, ImageSequence
@@ -5,18 +6,12 @@ import os
 import sys
 import subprocess
 
-# ============================================================
-# CONFIGURAÇÕES (troque aqui)
-# ============================================================
 TITULO = "LABIRINTO"
-ARQUIVO_FUNDO = "menu.gif"   # GIF de tela inteira do menu
+ARQUIVO_FUNDO = "menu.gif"
 ARQUIVO_JOGO = "game.py"
 
 PASTA = os.path.dirname(os.path.abspath(__file__))
 
-# ============================================================
-# APP E JANELA
-# ============================================================
 app = Ursina()
 
 monitor = get_monitors()[0]
@@ -30,9 +25,6 @@ window.exit_button.visible = False
 mouse.locked = False
 mouse.visible = True
 
-# ============================================================
-# FUNDO (GIF ANIMADO)
-# ============================================================
 quadros_gif = []
 indice_quadro = 0
 tempo_quadro = 0
@@ -43,7 +35,7 @@ def carregar_gif(caminho):
     quadros = []
 
     for quadro in ImageSequence.Iterator(gif):
-        duracao = quadro.info.get("duration", 100) / 1000  # ler ANTES do convert
+        duracao = quadro.info.get("duration", 100) / 1000
         imagem = quadro.convert("RGBA")
         quadros.append((Texture(imagem), duracao))
 
@@ -67,9 +59,6 @@ if os.path.exists(caminho_fundo):
 else:
     print(f"[menu] '{ARQUIVO_FUNDO}' não encontrado. Usando fundo preto.")
 
-# ============================================================
-# TÍTULO E BOTÃO START
-# ============================================================
 titulo = Text(
     text=TITULO,
     origin=(0, 0),
@@ -80,10 +69,17 @@ titulo = Text(
 
 
 def iniciar_jogo():
+    caminho_jogo = os.path.join(PASTA, ARQUIVO_JOGO)
+
+    if not os.path.exists(caminho_jogo):
+        print(f"Erro: arquivo do jogo não encontrado: {caminho_jogo}")
+        return
+
     subprocess.Popen(
-        [sys.executable, os.path.join(PASTA, ARQUIVO_JOGO)],
+        [sys.executable, caminho_jogo],
         cwd=PASTA
     )
+
     application.quit()
 
 
@@ -99,9 +95,6 @@ botao_start = Button(
 )
 
 
-# ============================================================
-# UPDATE E TECLAS
-# ============================================================
 def update():
     global indice_quadro, tempo_quadro
 
@@ -119,5 +112,6 @@ def input(key):
     if key in ("enter", "space"):
         iniciar_jogo()
 
-def iniciar():
+
+if __name__ == "__main__":
     app.run()

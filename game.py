@@ -8,7 +8,6 @@ from PIL import Image, ImageSequence
 import os
 import sys
 import subprocess
-from menu import iniciar
 
 #suporte gif
 quadros_gif = []
@@ -147,6 +146,7 @@ lista_caveiras = []
 # Estados de Jogo
 morto = False
 venceu = False
+jogo_iniciado = True
 
 # ATIVAÇÃO DOS MODELOS POR DISTÂNCIA
 DISTANCIA_ATIVAR_MODELOS = 35
@@ -585,6 +585,13 @@ def spawnar_caveiras():
         lista_caveiras.append(skull)
 
 spawnar_caveiras()
+player.enabled = False
+texto_bateria.enabled = False
+texto_caveiras.enabled = False
+debug_tumulus.enabled = False
+minimapa.enabled = False
+mouse.locked = False
+mouse.visible = True
 
 def teletransportar_tumulus():
     global alvo_tumulus, tempo_recalculo, tempo_protecao, perseguindo
@@ -988,6 +995,26 @@ def atualizar_gingerbread():
         tempo_proximo_teleporte_gingerbread = random.uniform(15.0, 25.0)
         teletransportar_gingerbread()
 
+reinicio_em_andamento = False
+
+def reiniciar_partida():
+    global reinicio_em_andamento
+
+    if reinicio_em_andamento:
+        return
+
+    reinicio_em_andamento = True
+
+    caminho_jogo = os.path.abspath(__file__)
+    pasta_jogo = os.path.dirname(caminho_jogo)
+
+    subprocess.Popen(
+        [sys.executable, caminho_jogo],
+        cwd=pasta_jogo
+    )
+
+    application.quit()
+
 def update():
     global lanterna_ligada, ctrl_antes
     global tempo_recalculo, alvo_tumulus, tempo_protecao, perseguindo
@@ -999,11 +1026,16 @@ def update():
     global pode_reiniciar, texto_reiniciar, tela_morte_imagem
     global indice_quadro, tempo_quadro
     global quadros_gif
+    global jogo_iniciado
 
+    if not jogo_iniciado:
+        return
     if morto or venceu:
-        ctrl_reinicio = bool(held_keys['left control'] or held_keys['control'])
+        ctrl_reinicio = bool(
+            held_keys['left control'] or held_keys['control']
+        )
         if (venceu or pode_reiniciar) and ctrl_reinicio:
-            iniciar()
+            reiniciar_partida()
         return
 
     empurrar_para_fora_das_paredes()
