@@ -8,6 +8,7 @@ from PIL import Image, ImageSequence
 import os
 import sys
 import subprocess
+from menu import iniciar
 
 #suporte gif
 quadros_gif = []
@@ -789,14 +790,6 @@ teletransportar_minotaurus()
 teletransportar_chocolate()
 teletransportar_gingerbread()
 
-def abrir_menu():
-    pasta = os.path.dirname(os.path.abspath(__file__))
-    subprocess.Popen(
-        [sys.executable, os.path.join(pasta, 'menu.py')],
-        cwd=pasta
-    )
-    application.quit()
-
 RAIO_JOGADOR = 0.45
 
 def empurrar_para_fora_das_paredes():
@@ -1010,7 +1003,7 @@ def update():
     if morto or venceu:
         ctrl_reinicio = bool(held_keys['left control'] or held_keys['control'])
         if (venceu or pode_reiniciar) and ctrl_reinicio:
-            abrir_menu()
+            iniciar()
         return
 
     empurrar_para_fora_das_paredes()

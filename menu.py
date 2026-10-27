@@ -119,5 +119,5 @@ def input(key):
     if key in ("enter", "space"):
         iniciar_jogo()
 
-
-app.run()
+def iniciar():
+    app.run()
